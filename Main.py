@@ -1,70 +1,51 @@
 import time
+import GetchFunctions
 
 # Config #
 
-Debug = True
+ConsiderEnterKeystroke = True
+LogLevel = 1
 NAttempts = 2
 EpsilonTimingVector = []
 
 # #
 
-class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
-    def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
-            self.impl = _GetchUnix()
+def PrintTimingMatrix(matrix):
+    print("\n".join(["->".join([str(Value) for Value in Vector]) for Vector in matrix]))
 
-    def __call__(self): return self.impl()
+def main():
+    getch = GetchFunctions._Getch()
 
+    RawTimingVectors = [] # ns Timestamps of each keystroke
+    DiffTimingVectors = [] # ns time between the last and the current keystroke
 
-class _GetchUnix:
-    def __init__(self):
-        import tty, sys
+    for AttemptIdx in range(NAttempts):
+        EnteredPasswordBytes = []
+        InChar = b''
+        RawTimingVectors.append([])
+        ##KeyStrokeIdx = 0
+        while InChar != b'\r' and InChar != b'\n':
+            EnteredPasswordBytes.append(InChar) # Adds to Keystroke-Timing, can be moved outside of loop! (TODO)
+            InChar = getch()                    # Adds to Keystroke-Timing
+            RawTimingVectors[AttemptIdx].append(time.time_ns()) # Also measuring timing of "Enter" keystroke
+            ##KeyStrokeIdx += 1                   # Adds to Keystroke-Timing
+            
+        EnteredPasswordString = b''.join(EnteredPasswordBytes).decode()
+        print(f"{AttemptIdx+1}: {EnteredPasswordString}")
 
-    def __call__(self):
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
+    if LogLevel > 0:
+        print("Raw Timing Vectors:")
+        PrintTimingMatrix(RawTimingVectors)
 
+    for AttemptIdx in range(NAttempts): # TODO: Make this a function (its not vector-difference, is it eucledian distance?)
+        DiffTimingVectors.append([])
+        for KeyStrokeIdx in range(1, len(RawTimingVectors[AttemptIdx])):
+            KeyStrokeTimingDifference = RawTimingVectors[AttemptIdx][KeyStrokeIdx] - RawTimingVectors[AttemptIdx][KeyStrokeIdx - 1]
+            DiffTimingVectors[AttemptIdx].append(KeyStrokeTimingDifference)
+            
+    if LogLevel > 0:
+        print("Difference Timing Vectors:")
+        PrintTimingMatrix(DiffTimingVectors)
 
-class _GetchWindows:
-    def __init__(self):
-        import msvcrt
-
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getch()
-
-
-getch = _Getch()
-
-RawTimingVectors = [] # ns Timestamps of each keystroke
-DifTimingVectors = [] # ns time between the last and the current keystroke
-
-for AttemptIdx in range(NAttempts):
-    EnteredPasswordBytes = []
-    InChar = b''
-    RawTimingVectors.append([])
-    ##KeyStrokeIdx = 0
-    while InChar != b'\r' and InChar != b'\n':
-        EnteredPasswordBytes.append(InChar) # Adds to Keystroke-Timing
-        InChar = getch()                    # Adds to Keystroke-Timing
-        RawTimingVectors[AttemptIdx].append(time.time_ns())
-        ##KeyStrokeIdx += 1                   # Adds to Keystroke-Timing
-        
-    EnteredPasswordString = b''.join(EnteredPasswordBytes).decode()
-    print(f"{AttemptIdx+1}: {EnteredPasswordString}")
-
-if Debug:
-    print("Raw Timing Vectors:")
-    print("\n".join(["->".join([str(TimeStamp) for TimeStamp in Attempt]) for Attempt in RawTimingVectors]))
-
+if __name__ == "__main__":
+    main()
