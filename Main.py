@@ -1,5 +1,13 @@
 import time
 
+# Config #
+
+Debug = True
+NAttempts = 2
+EpsilonTimingVector = []
+
+# #
+
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
 screen."""
@@ -39,12 +47,24 @@ class _GetchWindows:
 
 getch = _Getch()
 
-for i in range(5):
+RawTimingVectors = [] # ns Timestamps of each keystroke
+DifTimingVectors = [] # ns time between the last and the current keystroke
+
+for AttemptIdx in range(NAttempts):
     EnteredPasswordBytes = []
     InChar = b''
+    RawTimingVectors.append([])
+    ##KeyStrokeIdx = 0
     while InChar != b'\r' and InChar != b'\n':
-        EnteredPasswordBytes.append(InChar)
-        InChar = getch()
+        EnteredPasswordBytes.append(InChar) # Adds to Keystroke-Timing
+        InChar = getch()                    # Adds to Keystroke-Timing
+        RawTimingVectors[AttemptIdx].append(time.time_ns())
+        ##KeyStrokeIdx += 1                   # Adds to Keystroke-Timing
         
     EnteredPasswordString = b''.join(EnteredPasswordBytes).decode()
-    print(f"{i+1}: {EnteredPasswordString}")
+    print(f"{AttemptIdx+1}: {EnteredPasswordString}")
+
+if Debug:
+    print("Raw Timing Vectors:")
+    print("\n".join(["->".join([str(TimeStamp) for TimeStamp in Attempt]) for Attempt in RawTimingVectors]))
+
