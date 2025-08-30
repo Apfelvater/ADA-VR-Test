@@ -33,17 +33,23 @@ def RequestEnrollment(nAttempts, considerEnterKeystroke, getch):
 
     print("Enter your password for enrollment (5 attempts):")
 
-    RawTimingVectors = [] # ns Timestamps of each keystroke
-    DiffTimingVectors = [] # ns time between the last and the current keystroke
+    RawTimingVectors = [] # All vectors of ns Timestamps of each keystroke
+    DiffTimingVectors = [] # All vectors of ns time between the last and the current keystroke
+    EnteredPasswordString = None
 
     for AttemptIdx in range(nAttempts):
         RawTimingVectors.append([])
         
-        EnteredPasswordString, RawKeystrokeTimingVector = RequestPassword(considerEnterKeystroke, getch)
+        NextEnteredPasswordString, RawKeystrokeTimingVector = RequestPassword(considerEnterKeystroke, getch)
 
         RawTimingVectors[AttemptIdx] = RawKeystrokeTimingVector
 
-        print(f"Attempt {AttemptIdx+1}: {EnteredPasswordString}")
+        print(f"Attempt {AttemptIdx+1}: {NextEnteredPasswordString}")
+
+        if EnteredPasswordString != None and NextEnteredPasswordString != EnteredPasswordString:
+            raise Exception("Password doesnt match. Enrollment process failed!")
+        
+        EnteredPasswordString = NextEnteredPasswordString
 
     if LogLevel > 1:
         print("Raw Timing Vectors:")
@@ -61,8 +67,12 @@ def RequestEnrollment(nAttempts, considerEnterKeystroke, getch):
 def main():
     getch = GetchFunctions._Getch()
 
-    EnrollmentPassword, AverageTimingVector = RequestEnrollment(NAttempts, ConsiderEnterKeystroke, getch)
-    
+    try:
+        EnrollmentPassword, AverageTimingVector = RequestEnrollment(NAttempts, ConsiderEnterKeystroke, getch)
+    except Exception as e:
+        print(e)
+        return False
+
     if LogLevel > 0:
         print("Enrollment Average Timing Vector:")
         print("->".join([str(Time) for Time in AverageTimingVector]))
@@ -75,6 +85,10 @@ def main():
     LoginAttemptPasswordString, LoginAttemptRawTimingVector = RequestPassword(ConsiderEnterKeystroke, getch)
     print(LoginAttemptPasswordString)
     LoginAttemptDiffTimingVector = DiffTimingVector(LoginAttemptRawTimingVector)
+
+    if LoginAttemptPasswordString != EnrollmentPassword:
+        print("Password incorrect!")
+        return False
 
     if LogLevel > 0:
         print("Login Attempt Diff Timing Vector:")
