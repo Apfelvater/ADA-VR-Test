@@ -5,9 +5,9 @@ python Main.py
 
 # 2. Configuration
 
-Hardcoded in "Main.py"
+## Hardcoded in "Main.py"
 
-Default:
+**Default:**
 
 ConsiderEnterKeystroke = False              (The "Enter" keystroke will not be considered for time measurement)
 
@@ -20,24 +20,16 @@ EpsilonEuclideanDistanceNS = 0.69 * 10**9   (Maximum euclidean distance between 
 
 # 3. Required modules
 
-These (standard python) modules are always imported:
+**These (standard python) modules are always imported:**
 
-math
-
-string
-
-sys
+math, string, sys
 
 
-In Unix also required:
+**In Unix also required:**
 
-sys
-
-tty
-
-termios
+tty, termios
 
 
-In Windows also required:
+**In Windows also required:**
 
 msvcrt
