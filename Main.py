@@ -5,7 +5,7 @@ from Utility import *
 
 # Config #
 
-ConsiderEnterKeystroke = True
+ConsiderEnterKeystroke = False
 LogLevel = 2
 NAttempts = 2
 EpsilonEuclideanDistanceNS = 0.1 * 10**9
@@ -24,8 +24,7 @@ def RequestPassword(considerEnterKeystroke, getch):
     EnteredPasswordString = b''.join(EnteredPasswordBytes).decode()
 
     if not considerEnterKeystroke:
-        print("TODO remove last element of TimingVector")
-        pass
+        RawKeystrokeTimingVector = RawKeystrokeTimingVector[:-1]
 
     return EnteredPasswordString, RawKeystrokeTimingVector
 
