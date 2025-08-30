@@ -7,8 +7,8 @@ from Utility import *
 # Config #
 
 ConsiderEnterKeystroke = False
-LogLevel = 2
-NAttempts = 2
+LogLevel = 0
+NAttempts = 5
 EpsilonEuclideanDistanceNS = 0.69 * 10**9
 
 # #
