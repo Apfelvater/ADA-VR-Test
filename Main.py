@@ -1,5 +1,6 @@
 import time
 import GetchFunctions
+import string
 import sys
 from Utility import *
 
@@ -8,7 +9,7 @@ from Utility import *
 ConsiderEnterKeystroke = False
 LogLevel = 2
 NAttempts = 2
-EpsilonEuclideanDistanceNS = 0.1 * 10**9
+EpsilonEuclideanDistanceNS = 0.69 * 10**9
 
 # #
 
@@ -17,8 +18,17 @@ def RequestPassword(considerEnterKeystroke, getch):
     RawKeystrokeTimingVector = []
     InChar = b''
     while InChar != b'\r' and InChar != b'\n':
-        EnteredPasswordBytes.append(InChar) # Adds to Keystroke-Timing, can be moved outside of loop! (TODO)
+
+        # If character is not printable, we ingore it and take the time from this keystroke to the next one
+        # Therefore we overwrite the last keystroke timing
+        if InChar.decode() not in string.printable: # Adds to Keystroke-Timing
+            InChar = getch()                # Adds to Keystroke-Timing
+            RawKeystrokeTimingVector[-1] = time.time_ns()
+            continue
+
+        EnteredPasswordBytes.append(InChar) # Adds to Keystroke-Timing
         InChar = getch()                    # Adds to Keystroke-Timing
+
         RawKeystrokeTimingVector.append(time.time_ns()) # Also measuring timing of "Enter" keystroke
         
     EnteredPasswordString = b''.join(EnteredPasswordBytes).decode()
